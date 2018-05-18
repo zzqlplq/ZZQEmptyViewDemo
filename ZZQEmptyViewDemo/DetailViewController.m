@@ -29,13 +29,10 @@
     } else {
         [self showCustomBtnEmptyView];
     }
-    
-    
 }
 
 - (void)showNormalEmptyView {
-    ZZQEmptyView *emptyView = [ZZQEmptyView showEmptyViewAddTo:self.view withEmptyMode:ZZQEmptyViewModeNONet];
-    emptyView.detailsLabel.text = @"请检查网络连接情况";
+    [ZZQEmptyView showEmptyViewAddTo:self.view withEmptyMode:ZZQEmptyViewModeNoData];
 }
 
 
@@ -45,8 +42,8 @@
     UIImage *image = [UIImage imageNamed:imageName];
     
     ZZQEmptyView *emptyView = [[ZZQEmptyView alloc] initWithView:self.view];
+    emptyView.emptyMode = ZZQEmptyViewModeNormal;
     emptyView.imgView.image = image;
-    emptyView.emptyMode = ZZQEmptyViewModeNoButton;
     emptyView.autoHide = NO;
     emptyView.delegate = self;
     emptyView.backgroundColor = [UIColor groupTableViewBackgroundColor];
@@ -57,14 +54,14 @@
 - (void)showCustomTextEmptyView {
     
     ZZQEmptyView *emptyView = [[ZZQEmptyView alloc] initWithView:self.view];
-    emptyView.emptyMode = ZZQEmptyViewModeTextOnly;
+    emptyView.emptyMode = ZZQEmptyViewModeNormal;
     
     emptyView.label.attributedText = [[NSAttributedString alloc] initWithString:@"这是自定义的标题" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:20],
                              NSForegroundColorAttributeName:[UIColor darkGrayColor],
                              NSStrokeColorAttributeName:[UIColor redColor],
                              NSStrokeWidthAttributeName:@1}];
 
-    emptyView.detailsLabel.attributedText = [[NSAttributedString alloc] initWithString:@"这是自定义详细说明，字数是没限制的,\n想写多少写多少" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],
+    emptyView.detailLabel.attributedText = [[NSAttributedString alloc] initWithString:@"这是自定义详细说明，字数是没限制的,\n想写多少写多少" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16],
                                                                                                      NSForegroundColorAttributeName:[UIColor darkGrayColor],
                                                                                                      NSStrokeColorAttributeName:[UIColor blackColor],
                                                                                                      NSStrokeWidthAttributeName:@1}];
@@ -77,21 +74,17 @@
 - (void)showCustomBtnEmptyView {
 
     ZZQEmptyView *emptyView = [[ZZQEmptyView alloc] initWithView:self.view];
-    emptyView.emptyMode = ZZQEmptyViewModeNoImage;
+    emptyView.emptyMode = ZZQEmptyViewModeNormal;
     emptyView.label.text = @"没有数据展示";
     [emptyView.button setTitle:@"这是按钮" forState:UIControlStateNormal];
     [emptyView.button setTitleColor:[UIColor greenColor] forState:UIControlStateNormal];
-    emptyView.button.layer.borderColor = [UIColor greenColor].CGColor;
-
     [self.view addSubview:emptyView];
 }
 
 
 
 - (void)emptyViewHadClick:(ZZQEmptyView *)emptyView {
-    
     [self.view makeToast:@"暂停一会儿，再删除"];
-    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [emptyView hide];
     });
@@ -104,6 +97,7 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
 
 
 - (void)dealloc {    

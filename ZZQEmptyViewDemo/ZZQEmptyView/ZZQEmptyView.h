@@ -20,28 +20,24 @@
 @end
 
 typedef NS_ENUM(NSInteger, ZZQEmptyViewMode) {
-
     ZZQEmptyViewModeNoData,
     ZZQEmptyViewModeNONet,
-    
-    ZZQEmptyViewModeNoButton,
-    ZZQEmptyViewModeNoImage,
-    ZZQEmptyViewModeTextOnly
+    ZZQEmptyViewModeNormal
 };
 
 
 @interface ZZQEmptyView : UIView
 
-// 图片
+// 图片  normal时不设置 不显示
 @property (strong, nonatomic, readonly) UIImageView *imgView;
 
-// 标题
+// 标题  normal时不设置 不显示
 @property (nonatomic, strong, readonly) UILabel *label;
 
-// 详细说明
-@property (nonatomic, strong, readonly) UILabel *detailsLabel;
+// 详细说明 normal时不设置 不显示
+@property (nonatomic, strong, readonly) UILabel *detailLabel;
 
-// 加载按钮
+// 加载按钮  normal时不设置 不显示
 @property (nonatomic, strong, readonly) UIButton *button;
 
 // 点击自动消失，默认为 YES
@@ -52,15 +48,11 @@ typedef NS_ENUM(NSInteger, ZZQEmptyViewMode) {
 
 @property (nonatomic, weak) id<ZZQEmptyViewDelegate> delegate;
 
-
 + (instancetype)showEmptyViewAddTo:(UIView *)view withEmptyMode:(ZZQEmptyViewMode)emptyMode;
 
-+ (BOOL)hideEmptyViewForView:(UIView *)view;
-
-+ (ZZQEmptyView *)emptyView:(UIView *)view;
-
-
 - (instancetype)initWithView:(UIView *)view;
+
++ (BOOL)hideEmptyViewForView:(UIView *)view;
 
 - (void)hide;
 

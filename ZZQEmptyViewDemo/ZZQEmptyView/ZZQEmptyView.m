@@ -9,8 +9,10 @@
 #import "ZZQEmptyView.h"
 #import <Masonry.h>
 
+#define DefaultContentColor    [UIColor lightGrayColor]
+
 static const CGFloat kDefaultLabelFontSize = 16.f;
-static const CGFloat kDefaultDetailsLabelFontSize = 12.f;
+static const CGFloat kDefaultDetailsLabelFontSize = 14.f;
 
 static NSString *const kDefaultBtnTitle = @"点击重新加载";
 static NSString *const kDefaultNoDateDesc = @"没有数据";
@@ -18,9 +20,15 @@ static NSString *const kDefaultNoNetDesc = @"没有网络";
 static NSString *const kDefaultNoDataImageName = @"noData";
 static NSString *const kDefaultNoNetImageName = @"noNet";
 
-@interface ZZQEmptyView ()
+@interface ZZQEmptyView () <UIGestureRecognizerDelegate>
 
-@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, strong) UIImageView *imgView;
+
+@property (nonatomic, strong) UILabel *label;
+
+@property (nonatomic, strong) UILabel *detailLabel;
+
+@property (nonatomic, strong) UIButton *button;
 
 @end
 
@@ -34,7 +42,6 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     ZZQEmptyView *emptyView = [[ZZQEmptyView alloc] initWithView:view];
     emptyView.emptyMode = emptyMode;
     [view addSubview:emptyView];
-
     return emptyView;
 }
 
@@ -51,7 +58,6 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 
 + (ZZQEmptyView *)emptyView:(UIView *)view {
-   
     NSEnumerator *subviewsEnum = [view.subviews reverseObjectEnumerator];
     for (UIView *subview in subviewsEnum) {
         if ([subview isKindOfClass:self]) {
@@ -77,171 +83,142 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     return [self initWithFrame:view.bounds];
 }
 
-
 - (void)commonInit {
+    self.backgroundColor = [UIColor whiteColor];
     _autoHide = YES;
     _emptyMode = ZZQEmptyViewModeNoData;
-    self.backgroundColor = [UIColor whiteColor];
-    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(emptyViewClick)];
-    _tapGesture = tapGesture;
-    [self setupViews];
-}
-
-
-- (void)setupViews {
-    
-    UIColor *defaultColor = [UIColor lightGrayColor];
-    
-    UIImageView *imageView = [UIImageView new];
-    imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.backgroundColor = [UIColor clearColor];
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
-    imageView.userInteractionEnabled = NO;
-    _imgView = imageView;
-    
-    UILabel *label = [UILabel new];
-    label.adjustsFontSizeToFitWidth = NO;
-    label.textAlignment = NSTextAlignmentCenter;
-    label.textColor = defaultColor;
-    label.font = [UIFont boldSystemFontOfSize:kDefaultLabelFontSize];
-    label.opaque = NO;
-    label.backgroundColor = [UIColor clearColor];
-    _label = label;
-    
-    UILabel *detailsLabel = [UILabel new];
-    detailsLabel.adjustsFontSizeToFitWidth = NO;
-    detailsLabel.textAlignment = NSTextAlignmentCenter;
-    detailsLabel.textColor = defaultColor;
-    detailsLabel.numberOfLines = 0;
-    detailsLabel.font = [UIFont boldSystemFontOfSize:kDefaultDetailsLabelFontSize];
-    detailsLabel.opaque = NO;
-    detailsLabel.backgroundColor = [UIColor clearColor];
-    _detailsLabel = detailsLabel;
-    
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.titleLabel.textAlignment = NSTextAlignmentCenter;
-    button.titleLabel.font = [UIFont boldSystemFontOfSize:kDefaultLabelFontSize];
-    [button setTitleColor:defaultColor forState:UIControlStateNormal];
-    [button setTitle:kDefaultBtnTitle forState:UIControlStateNormal];
-    [button addTarget:self action:@selector(emptyViewClick) forControlEvents:UIControlEventTouchUpInside];
-    button.layer.cornerRadius = 2.f;
-    button.layer.borderColor = defaultColor.CGColor;
-    button.layer.borderWidth = 1.f;
-    _button = button;
+    [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(emptyViewClick)]];
+    [self addSubviews];
+    [self updateModelUI];
 }
 
 
 - (void)layoutSubviews {
-    [self addSubviews];
-    [self makeSubviewsLayout];
     [super layoutSubviews];
+    [self makeSubviewsLayout];
 }
 
 
 - (void)addSubviews {
-    
-    [self addSubview:_label];
-    [self addSubview:_detailsLabel];
-
-    BOOL hasImage = _imgView.image;
-    BOOL hasLabelText = (_label.text.length || _label.attributedText.length);
-    
-    ZZQEmptyViewMode mode = self.emptyMode;
-    
-    if (mode == ZZQEmptyViewModeNoData) {
-
-        [self addSubview:_imgView];
-        [self addSubview:_button];
-        
-        _imgView.image = hasImage ? _imgView.image : [UIImage imageNamed:kDefaultNoDataImageName];
-        _label.text = hasLabelText ? _label.text : kDefaultNoDateDesc;
-        
-    } else if (mode == ZZQEmptyViewModeNONet) {
-
-        [self addSubview:_imgView];
-        [self addSubview:_button];
-        _imgView.image = hasImage ? _imgView.image : [UIImage imageNamed:kDefaultNoNetImageName];
-        _label.text = hasLabelText ? _label.text : kDefaultNoNetDesc;
-        
-    } else if (mode == ZZQEmptyViewModeNoImage) {
-
-        [self addSubview:_button];
-        _label.text = hasLabelText ? _label.text : kDefaultNoNetDesc;
-
-    } else if (mode == ZZQEmptyViewModeNoButton) {
-
-        [self addGestureRecognizer:_tapGesture];
-        [self addSubview:_imgView];
-        
-        _imgView.image = hasImage ? _imgView.image : [UIImage imageNamed:kDefaultNoDataImageName];
-        _label.text = hasLabelText ? _label.text : kDefaultNoDateDesc;
-
-    } else if (mode == ZZQEmptyViewModeTextOnly) {
-      
-        [self addGestureRecognizer:_tapGesture];
-        _label.text = hasLabelText ? _label.text : kDefaultNoDateDesc;
-        
-    }
+    [self addSubview:self.imgView];
+    [self addSubview:self.button];
+    [self addSubview:self.label];
+    [self addSubview:self.detailLabel];
 }
 
+
+- (void)updateModelUI {
+    
+    ZZQEmptyViewMode mode = self.emptyMode;
+
+    if (mode == ZZQEmptyViewModeNoData) {
+        self.imgView.image = [UIImage imageNamed:kDefaultNoDataImageName];
+        self.label.text = kDefaultNoDateDesc;
+        [self.button setTitle:kDefaultBtnTitle forState:UIControlStateNormal];
+ 
+    } else if (mode == ZZQEmptyViewModeNONet) {
+        self.imgView.image = [UIImage imageNamed:kDefaultNoNetImageName];
+        self.label.text = kDefaultNoNetDesc;
+        [self.button setTitle:kDefaultBtnTitle forState:UIControlStateNormal];
+    
+    } else {
+        self.imgView.image = nil;
+        self.label.text = nil;
+        [self.button setTitle:nil forState:UIControlStateNormal];
+    }
+}
 
 
 - (void)makeSubviewsLayout {
     
-    CGSize imageSize = _imgView.image.size;
+    NSMutableArray *subviews = [NSMutableArray array];
     
-    if ([self hasImageView]) {
-        [_imgView mas_makeConstraints:^(MASConstraintMaker *make) {
+    if ([self showImageView]) {
+        [self.imgView mas_makeConstraints:^(MASConstraintMaker *make) {
             make.centerX.equalTo(self);
-            make.centerY.equalTo(self.mas_centerY).offset(-imageSize.height/3);
-            make.size.mas_equalTo(imageSize);
+            make.width.equalTo(self.mas_width).multipliedBy(0.4);
+            make.height.equalTo(self.imgView.mas_width);
         }];
+        [subviews addObject:self.imgView];
+    } else {
+        [self.imgView removeFromSuperview];
+        self.imgView = nil;
     }
     
-    [_label mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.equalTo(self);
-        if ([self hasImageView]) {
-            make.top.equalTo(_imgView.mas_bottom).offset(30);
+    if ([self showLabel]) {
+        [self.label mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.centerX.equalTo(self);
+            make.left.equalTo(self.mas_left).offset(40);
+        }];
+        [subviews addObject:self.label];
+    } else {
+        [self.label removeFromSuperview];
+        self.label = nil;
+    }
+
+    if ([self showDetailLabel]) {
+        [self.detailLabel mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.centerX.equalTo(self);
+            make.left.equalTo(self.mas_left).offset(20);
+        }];
+        [subviews addObject:self.detailLabel];
+    } else {
+        [self.detailLabel removeFromSuperview];
+        self.detailLabel = nil;
+    }
+    
+    if ([self showButton]) {
+        [self.button mas_makeConstraints:^(MASConstraintMaker *make) {
+            make.centerX.equalTo(self);
+            make.left.equalTo(self.mas_left).offset(20);
+            make.height.mas_equalTo(@(44));
+        }];
+        [subviews addObject:self.button];
+    } else {
+        [self.button removeFromSuperview];
+        self.button = nil;
+    }
+    
+    for (int i = 0; i < subviews.count; i ++) {
+        UIView *view = subviews[i];
+        if (i == 0) {
+            [view mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.centerY.equalTo(self.mas_centerY).offset(-20);
+            }];
         } else {
-            make.centerY.equalTo(self);
+            UIView *frontView = subviews[i - 1];
+            [view mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(frontView.mas_bottom).offset(14);
+            }];
         }
-        make.left.equalTo(self.mas_left).offset(40);
-        make.right.equalTo(self.mas_right).offset(-40);
-    }];
-    
-    [_detailsLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.equalTo(self);
-        make.left.equalTo(self.mas_left).offset(40);
-        make.right.equalTo(self.mas_right).offset(-40);
-        make.top.equalTo(_label.mas_bottom).offset(20);
-    }];
-    
-    if ([self hasButton]) {
-        [_button mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.top.equalTo(_detailsLabel.mas_bottom).offset(20);
-            make.size.mas_equalTo(CGSizeMake(120, 42));
-        }];
     }
 }
 
 
-- (BOOL)hasImageView {
-    return _imgView.superview && _imgView.image ? YES : NO;
+- (BOOL)showImageView {
+    return (!self.imgView.superview || self.imgView.image == nil) ? NO : YES;
 }
 
 
-- (BOOL)hasButton {
-    return _button.superview == nil ? NO : YES;
+- (BOOL)showLabel {
+    return (!self.label.superview || (self.label.text.length == 0 && self.label.attributedText.length == 0)) ? NO : YES;
+}
+
+
+- (BOOL)showDetailLabel {
+    return (!self.detailLabel.superview || (self.detailLabel.text.length == 0 && self.detailLabel.attributedText.length == 0)) ? NO : YES;
+}
+
+
+- (BOOL)showButton {
+    return (!self.button.superview || (self.button.titleLabel.text.length == 0 && self.button.titleLabel.text.length == 0)) ? NO : YES;
 }
 
 
 - (void)emptyViewClick{
-    
     if ([self.delegate respondsToSelector:@selector(emptyViewHadClick:)]) {
         [self.delegate emptyViewHadClick:self];
     }
-    
     if (self.autoHide) {
         [self hide];
     }
@@ -249,18 +226,82 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 
 - (void)hide {
-    _imgView = nil;
-    _label = nil;
-    _detailsLabel = nil;
-    _button = nil;
+    self.imgView = nil;
+    self.label = nil;
+    self.detailLabel = nil;
+    self.button = nil;
     [self removeFromSuperview];
 }
 
+
 - (void)dealloc {
-    
     NSLog(@"被销毁");
-    
 }
+
+#pragma mark - UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+    return [self showButton] ? NO : YES;
+}
+
+
+#pragma mark - setter
+- (void)setEmptyMode:(ZZQEmptyViewMode)emptyMode {
+    if (emptyMode != _emptyMode) {
+        _emptyMode = emptyMode;
+        [self updateModelUI];
+    }
+}
+
+
+
+#pragma mark - getter
+- (UIImageView *)imgView {
+    if(!_imgView) {
+        _imgView = [UIImageView new];
+        _imgView.translatesAutoresizingMaskIntoConstraints = NO;
+        _imgView.backgroundColor = [UIColor clearColor];
+        _imgView.contentMode = UIViewContentModeScaleAspectFit;
+        _imgView.userInteractionEnabled = NO;
+    }
+    return _imgView;
+}
+
+
+- (UILabel *)label {
+    if (!_label) {
+        _label = [UILabel new];
+        _label.textColor = DefaultContentColor;
+        _label.textAlignment = NSTextAlignmentCenter;
+        _label.font = [UIFont systemFontOfSize:kDefaultLabelFontSize];
+    }
+    return _label;
+}
+
+
+- (UILabel *)detailLabel {
+    if (!_detailLabel) {
+        _detailLabel = [UILabel new];
+        _detailLabel.textColor = DefaultContentColor;
+        _detailLabel.textAlignment = NSTextAlignmentCenter;
+        _detailLabel.numberOfLines = 0;
+        _detailLabel.font = [UIFont systemFontOfSize:kDefaultDetailsLabelFontSize];
+    }
+    return _detailLabel;
+}
+
+
+- (UIButton *)button {
+    if(!_button) {
+        _button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_button setTitleColor:DefaultContentColor forState:UIControlStateNormal];
+        _button.titleLabel.textAlignment = NSTextAlignmentCenter;
+        _button.titleLabel.font = [UIFont systemFontOfSize:kDefaultLabelFontSize];
+        [_button addTarget:self action:@selector(emptyViewClick) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _button;
+}
+
 
 
 @end
