@@ -22,6 +22,8 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 @interface ZZQEmptyView () <UIGestureRecognizerDelegate>
 
+@property (nonatomic, strong) UIView *contentView;
+
 @property (nonatomic, strong) UIImageView *imgView;
 
 @property (nonatomic, strong) UILabel *label;
@@ -86,6 +88,7 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 - (void)commonInit {
     self.backgroundColor = [UIColor whiteColor];
     _autoHide = YES;
+    _verticalSpace = 14.f;
     _emptyMode = ZZQEmptyViewModeNoData;
     [self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(emptyViewClick)]];
     [self addSubviews];
@@ -100,10 +103,11 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 
 - (void)addSubviews {
-    [self addSubview:self.imgView];
-    [self addSubview:self.button];
-    [self addSubview:self.label];
-    [self addSubview:self.detailLabel];
+    [self addSubview:self.contentView];
+    [self.contentView addSubview:self.imgView];
+    [self.contentView addSubview:self.button];
+    [self.contentView addSubview:self.label];
+    [self.contentView addSubview:self.detailLabel];
 }
 
 
@@ -131,13 +135,18 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 - (void)makeSubviewsLayout {
     
+    [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.equalTo(self);
+        make.centerY.equalTo(self);
+    }];
+    
     NSMutableArray *subviews = [NSMutableArray array];
     
     if ([self showImageView]) {
+        CGSize imageSize = self.imgView.image.size;
         [self.imgView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.width.equalTo(self.mas_width).multipliedBy(0.4);
-            make.height.equalTo(self.imgView.mas_width);
+            make.centerX.equalTo(self.contentView);
+            make.size.mas_equalTo(imageSize);
         }];
         [subviews addObject:self.imgView];
     } else {
@@ -147,8 +156,8 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     
     if ([self showLabel]) {
         [self.label mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.left.equalTo(self.mas_left).offset(40);
+            make.centerX.equalTo(self.contentView);
+            make.left.equalTo(self.contentView.mas_left).offset(20);
         }];
         [subviews addObject:self.label];
     } else {
@@ -158,8 +167,8 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
     if ([self showDetailLabel]) {
         [self.detailLabel mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.left.equalTo(self.mas_left).offset(20);
+            make.centerX.equalTo(self.contentView);
+            make.left.equalTo(self.contentView.mas_left).offset(20);
         }];
         [subviews addObject:self.detailLabel];
     } else {
@@ -169,9 +178,7 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     
     if ([self showButton]) {
         [self.button mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.centerX.equalTo(self);
-            make.left.equalTo(self.mas_left).offset(20);
-            make.height.mas_equalTo(@(44));
+            make.centerX.equalTo(self.contentView);
         }];
         [subviews addObject:self.button];
     } else {
@@ -182,13 +189,19 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     for (int i = 0; i < subviews.count; i ++) {
         UIView *view = subviews[i];
         if (i == 0) {
-            [view mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.centerY.equalTo(self.mas_centerY).offset(-20);
+            [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.top.equalTo(view.mas_top);
             }];
         } else {
             UIView *frontView = subviews[i - 1];
             [view mas_makeConstraints:^(MASConstraintMaker *make) {
-                make.top.equalTo(frontView.mas_bottom).offset(14);
+                make.top.equalTo(frontView.mas_bottom).offset(self.verticalSpace);
+            }];
+        }
+        
+        if (i == subviews.count - 1) {
+            [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
+                make.bottom.equalTo(view.mas_bottom);
             }];
         }
     }
@@ -256,6 +269,16 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
 
 
 #pragma mark - getter
+
+- (UIView *)contentView {
+    if(!_contentView) {
+        _contentView = [UIView new];
+        _contentView.backgroundColor = [UIColor clearColor];
+    }
+    return _contentView;
+}
+
+
 - (UIImageView *)imgView {
     if(!_imgView) {
         _imgView = [UIImageView new];

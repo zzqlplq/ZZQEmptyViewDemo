@@ -32,7 +32,7 @@
 }
 
 - (void)showNormalEmptyView {
-    [ZZQEmptyView showEmptyViewAddTo:self.view withEmptyMode:ZZQEmptyViewModeNoData];
+    [ZZQEmptyView showEmptyViewAddTo:self.view withEmptyMode:ZZQEmptyViewModeNONet];
 }
 
 
@@ -55,7 +55,7 @@
     
     ZZQEmptyView *emptyView = [[ZZQEmptyView alloc] initWithView:self.view];
     emptyView.emptyMode = ZZQEmptyViewModeNormal;
-    
+    emptyView.verticalSpace = 4.f;
     emptyView.label.attributedText = [[NSAttributedString alloc] initWithString:@"这是自定义的标题" attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:20],
                              NSForegroundColorAttributeName:[UIColor darkGrayColor],
                              NSStrokeColorAttributeName:[UIColor redColor],

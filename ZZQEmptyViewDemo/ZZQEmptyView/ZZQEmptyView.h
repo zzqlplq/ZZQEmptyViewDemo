@@ -43,6 +43,9 @@ typedef NS_ENUM(NSInteger, ZZQEmptyViewMode) {
 // 点击自动消失，默认为 YES
 @property (nonatomic, assign) BOOL autoHide;
 
+// 控件间距 默认 14
+@property (nonatomic, assign) CGFloat verticalSpace;
+
 // 默认为 ZZQEmptyViewModeNoDate
 @property (nonatomic, assign) ZZQEmptyViewMode emptyMode;
 
