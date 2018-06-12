@@ -46,6 +46,10 @@ typedef NS_ENUM(NSInteger, ZZQEmptyViewMode) {
 // 控件间距 默认 14
 @property (nonatomic, assign) CGFloat verticalSpace;
 
+// 竖直方向偏移量 默认0，居中
+@property (nonatomic, assign) CGFloat verticalOffset;
+
+
 // 默认为 ZZQEmptyViewModeNoDate
 @property (nonatomic, assign) ZZQEmptyViewMode emptyMode;
 

@@ -137,7 +137,7 @@ static NSString *const kDefaultNoNetImageName = @"noNet";
     
     [self.contentView mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self);
-        make.centerY.equalTo(self);
+        make.centerY.equalTo(self).offset(self.verticalOffset);
     }];
     
     NSMutableArray *subviews = [NSMutableArray array];
